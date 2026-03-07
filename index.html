@@ -421,34 +421,6 @@
       appearance: none;
     }
 
-    .checkbox-label {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      font-weight: 500;
-      line-height: 1.5;
-      cursor: pointer;
-    }
-
-    .checkbox-label input[type="checkbox"] {
-      width: 20px;
-      min-width: 20px;
-      height: 20px;
-      margin: 2px 0 0;
-      padding: 0;
-      border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.35);
-      background: rgba(255,255,255,0.04);
-      appearance: auto;
-      -webkit-appearance: checkbox;
-      accent-color: #c8a96a;
-      cursor: pointer;
-    }
-
-    .checkbox-label span {
-      display: block;
-    }
-
     textarea {
       min-height: 160px;
       resize: vertical;
@@ -923,9 +895,8 @@ Il servizio verrà erogato in conformità con quanto disposto dal codice deontol
 
           <div class="contact-card">
             <h3>Richiedi informazioni</h3>
-            <form id="contactForm" action="https://formspree.io/f/mbdzjnoy" method="POST" accept-charset="UTF-8" novalidate>
+            <form action="https://formspree.io/f/mbdzjnoy" method="POST" accept-charset="UTF-8">
           <input type="hidden" name="_subject" value="Nuova richiesta dal sito web" />
-              <input type="text" name="_gotcha" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true" />
               <div class="field-row">
                 <label>
                   Nome e cognome
@@ -958,15 +929,14 @@ Il servizio verrà erogato in conformità con quanto disposto dal codice deontol
                 <textarea name="messaggio" placeholder="Descrivi brevemente la tua richiesta" required></textarea>
               </label>
 
-              <label class="checkbox-label">
+              <label>
                 <input type="checkbox" name="privacy" required />
-                <span>Dichiaro di aver letto l'<a href="privacy.html" target="_blank" rel="noopener">informativa privacy</a>.</span>
+                Dichiaro di aver letto l'informativa privacy.
               </label>
 
               <div>
-                <button type="submit" class="cta" id="contactSubmitBtn">Invia richiesta</button>
+                <button type="submit" class="cta">Invia richiesta</button>
               </div>
-              <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
             </form>
           </div>
         </div>
@@ -1040,64 +1010,6 @@ Il servizio verrà erogato in conformità con quanto disposto dal codice deontol
     if (cookieInfoBtn) {
       cookieInfoBtn.addEventListener('click', () => {
         window.location.href = 'privacy.html';
-      });
-    }
-
-    const contactForm = document.getElementById('contactForm');
-    const contactSubmitBtn = document.getElementById('contactSubmitBtn');
-    const formStatus = document.getElementById('formStatus');
-
-    function setFormStatus(message, type) {
-      if (!formStatus) return;
-      formStatus.textContent = message;
-      formStatus.className = 'form-status show ' + type;
-    }
-
-    if (contactForm) {
-      contactForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-
-        if (!contactForm.checkValidity()) {
-          contactForm.reportValidity();
-          setFormStatus('Controlla i campi obbligatori e conferma l\'informativa privacy.', 'error');
-          return;
-        }
-
-        if (contactSubmitBtn) {
-          contactSubmitBtn.disabled = true;
-          contactSubmitBtn.textContent = 'Invio in corso...';
-        }
-
-        setFormStatus('Invio in corso...', 'success');
-
-        try {
-          const response = await fetch(contactForm.action, {
-            method: 'POST',
-            body: new FormData(contactForm),
-            headers: {
-              Accept: 'application/json'
-            }
-          });
-
-          const data = await response.json().catch(() => ({}));
-
-          if (response.ok) {
-            contactForm.reset();
-            setFormStatus('Richiesta inviata correttamente. Ti ricontatteremo al più presto.', 'success');
-          } else {
-            const message = data.errors && data.errors.length
-              ? data.errors.map((item) => item.message).join(' ')
-              : 'Invio non riuscito. Riprova tra qualche minuto.';
-            setFormStatus(message, 'error');
-          }
-        } catch (error) {
-          setFormStatus('Impossibile inviare la richiesta. Verifica la connessione o riprova più tardi.', 'error');
-        } finally {
-          if (contactSubmitBtn) {
-            contactSubmitBtn.disabled = false;
-            contactSubmitBtn.textContent = 'Invia richiesta';
-          }
-        }
       });
     }
   </script>
