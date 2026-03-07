@@ -924,14 +924,14 @@ Il servizio verrà erogato in conformità con quanto disposto dal codice deontol
           <div class="contact-card">
             <h3>Richiedi informazioni</h3>
             <form id="contactForm" action="https://formspree.io/f/mbdzjnoy" method="POST" accept-charset="UTF-8">
-              <input type="hidden" name="_subject" value="Nuova richiesta dal sito web" />
+              <input type="hidden" name="subject" value="Nuova richiesta dal sito web" />
               <input type="hidden" name="_language" value="it" />
               <input type="text" name="_gotcha" tabindex="-1" autocomplete="off" style="position:absolute; left:-9999px; opacity:0; pointer-events:none;" aria-hidden="true" />
 
               <div class="field-row">
                 <label>
                   Nome e cognome
-                  <input type="text" name="nome" placeholder="Inserisci il tuo nome" autocomplete="name" required />
+                  <input type="text" name="name" placeholder="Inserisci il tuo nome" autocomplete="name" required />
                 </label>
                 <label>
                   E-mail
@@ -942,11 +942,11 @@ Il servizio verrà erogato in conformità con quanto disposto dal codice deontol
               <div class="field-row">
                 <label>
                   Oggetto
-                  <input type="text" name="oggetto" placeholder="Es. richiesta consulenza" required />
+                  <input type="text" name="custom_subject" placeholder="Es. richiesta consulenza" required />
                 </label>
                 <label>
                   Servizio di interesse
-                  <select name="servizio">
+                  <select name="service">
                     <option value="">Seleziona</option>
                     <option value="Attività">Attività</option>
                     <option value="Domiciliazioni">Domiciliazioni</option>
@@ -957,7 +957,7 @@ Il servizio verrà erogato in conformità con quanto disposto dal codice deontol
 
               <label>
                 Messaggio
-                <textarea name="messaggio" placeholder="Descrivi brevemente la tua richiesta" required></textarea>
+                <textarea name="message" placeholder="Descrivi brevemente la tua richiesta" required></textarea>
               </label>
 
               <label class="checkbox-label">
@@ -1051,56 +1051,69 @@ Il servizio verrà erogato in conformità con quanto disposto dal codice deontol
     const contactSubmitBtn = document.getElementById('contactSubmitBtn');
 
     if (contactForm) {
-      contactForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
+      const isHttpPage = window.location.protocol === 'http:' || window.location.protocol === 'https:';
 
-        if (formStatus) {
-          formStatus.textContent = 'Invio in corso...';
-        }
+      if (!isHttpPage && formStatus) {
+        formStatus.textContent = 'Anteprima locale rilevata: il modulo verrà inviato con il submit normale del browser.';
+      }
 
-        if (contactSubmitBtn) {
-          contactSubmitBtn.disabled = true;
-          contactSubmitBtn.setAttribute('aria-busy', 'true');
-        }
+      if (isHttpPage) {
+        contactForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
 
-        try {
-          const response = await fetch(contactForm.action, {
-            method: 'POST',
-            body: new FormData(contactForm),
-            headers: {
-              'Accept': 'application/json'
-            }
-          });
-
-          if (response.ok) {
-            contactForm.reset();
-            if (formStatus) {
-              formStatus.textContent = 'Messaggio inviato correttamente. Ti ricontatteremo al più presto.';
-            }
-          } else {
-            let errorMessage = 'Invio non riuscito. Controlla i campi e riprova.';
-            try {
-              const data = await response.json();
-              if (data && Array.isArray(data.errors) && data.errors.length > 0) {
-                errorMessage = data.errors.map((error) => error.message).join(' ');
-              }
-            } catch (error) {
-            }
-            if (formStatus) {
-              formStatus.textContent = errorMessage;
-            }
-          }
-        } catch (error) {
           if (formStatus) {
-            formStatus.textContent = 'Errore di connessione. Riprova tra qualche minuto.';
+            formStatus.textContent = 'Invio in corso...';
           }
-        } finally {
+
           if (contactSubmitBtn) {
-            contactSubmitBtn.disabled = false;
-            contactSubmitBtn.removeAttribute('aria-busy');
+            contactSubmitBtn.disabled = true;
+            contactSubmitBtn.setAttribute('aria-busy', 'true');
           }
-        }
-      });
+
+          try {
+            const response = await fetch(contactForm.action, {
+              method: 'POST',
+              body: new FormData(contactForm),
+              headers: {
+                'Accept': 'application/json'
+              }
+            });
+
+            if (response.ok) {
+              contactForm.reset();
+              if (formStatus) {
+                formStatus.textContent = 'Messaggio inviato correttamente. Ti ricontatteremo al più presto.';
+              }
+            } else {
+              let errorMessage = 'Invio non riuscito.';
+              try {
+                const data = await response.json();
+                if (data && Array.isArray(data.errors) && data.errors.length > 0) {
+                  errorMessage = data.errors.map((error) => error.message).join(' ');
+                } else if (data && data.error) {
+                  errorMessage = data.error;
+                } else {
+                  errorMessage = 'Invio non riuscito. Verifica le impostazioni del form su Formspree.';
+                }
+              } catch (error) {
+                errorMessage = 'Invio non riuscito. Verifica le impostazioni del form su Formspree.';
+              }
+              if (formStatus) {
+                formStatus.textContent = errorMessage;
+              }
+            }
+          } catch (error) {
+            if (formStatus) {
+              formStatus.textContent = 'Errore di connessione. Pubblica il sito su HTTPS oppure usa il submit normale del browser.';
+            }
+          } finally {
+            if (contactSubmitBtn) {
+              contactSubmitBtn.disabled = false;
+              contactSubmitBtn.removeAttribute('aria-busy');
+            }
+          }
+        });
+      }
     }
   </script>
 </body>
